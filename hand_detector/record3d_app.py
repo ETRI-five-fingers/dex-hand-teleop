@@ -74,8 +74,13 @@ class CameraApp:
     def fetch_rgb_and_depth(self):
         if not self.rgb_video_file:
             self.event.wait(1)
+            print("depth shape: ", self.session.get_depth_frame().shape)
+            print("color shape: ", self.session.get_rgb_frame().shape)
             depth = np.transpose(self.session.get_depth_frame(), [1, 0])
             rgb = np.transpose(self.session.get_rgb_frame(), [1, 0, 2])
+
+            print("after depth shape: ", self.session.get_depth_frame().shape)
+            print("after color shape: ", self.session.get_rgb_frame().shape)
 
             is_true_depth = depth.shape[0] == 480
             if is_true_depth:
@@ -119,17 +124,21 @@ if __name__ == '__main__':
 
     app = CameraApp(file="")
     app.connect_to_device()
-    filename = f"video/rgb_{1:0>4d}.mp4"
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    app.record(filename)
-    # for _ in range(50000):
-    #     tic = get_time()
-    #     for _ in range(1):
-    #         rgb_image, depth = app.fetch_rgb_and_depth()
-    #     print(f"Time for one frame: {get_time() - tic}s")
-    #     # time.sleep(0.2)
-    #     bgr = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
-    #     cv2.imshow("record3d", bgr)
-    #     cv2.imwrite("temp.png", bgr)
-    #     # cv2.imshow("record3", rgb_image)
-    #     cv2.waitKey(1)
+    # filename = f"video/rgb_{1:0>4d}.mp4"
+    # os.makedirs(os.path.dirname(filename), exist_ok=True)
+    # app.record(filename)
+    for _ in range(50000):
+        tic = get_time()
+        for _ in range(1):
+            rgb_image, depth = app.fetch_rgb_and_depth()
+        print(f"Time for one frame: {get_time() - tic}s")
+        # time.sleep(0.2)
+        bgr = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
+        cv2.imshow("record3d", bgr)
+        cv2.imwrite("temp.png", bgr)
+        # cv2.imshow("record3", rgb_image)
+        cv2.imshow("depth", depth)
+        print("color min/max: {}/{}".format(bgr.min(), bgr.max()))
+        print("depth min/max: {}/{}".format(np.nanmin(depth), np.nanmax(depth)))
+        print("depth value", depth)
+        cv2.waitKey(1)

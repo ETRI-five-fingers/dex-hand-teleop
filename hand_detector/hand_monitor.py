@@ -15,6 +15,8 @@ from hand_detector.hand_mode_detector import SingleHandDetector, HandMocap
 from hand_detector.record3d_app import CameraApp
 from hand_teleop.utils.mesh_utils import compute_smooth_shading_normal_np
 
+from hand_detector.realsense import RealSenseApp
+
 
 def frame_cam2operator(point_array: np.ndarray):
     point_array_operator = -point_array[:, [2, 0, 1]]
@@ -51,8 +53,9 @@ class Record3DSingleHandMotionControl:
                 f"Mode {hand_mode} is invalid. Current {len(self.SUPPORT_HAND_MODE)} mode are supported: "
                 f"{self.SUPPORT_HAND_MODE} ")
 
-        # Camera app
-        self.camera = CameraApp(file=virtual_video_file)
+        # Camera app, choose the camera you want to use between iphone and realsense
+        # self.camera = CameraApp(file=virtual_video_file)
+        self.camera = RealSenseApp(file=virtual_video_file)
         self.camera.connect_to_device()
         self.camera_mat = self.camera.camera_intrinsics
         self.focal_length = self.camera.camera_intrinsics[0, 0]
