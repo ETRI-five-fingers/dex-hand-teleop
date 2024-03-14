@@ -11,6 +11,8 @@ from smplx import SMPLX
 from timingdecorator.timeit import timeit
 import scipy.stats
 
+from utils.utils import PlotOffset
+
 from hand_detector.hand_mode_detector import SingleHandDetector, HandMocap
 from hand_detector.record3d_app import CameraApp
 from hand_teleop.utils.mesh_utils import compute_smooth_shading_normal_np
@@ -100,6 +102,9 @@ class Record3DSingleHandMotionControl:
         # Offset based bbox estimation
         self.previous_offset = {"left_hand": np.zeros(3, dtype=np.float32), "right_hand": np.zeros(3, dtype=np.float32)}
 
+        # Plot data(offset)
+        self.graph = PlotOffset()
+
     def compute_3d_offset(self, mocap_data: Dict, depth: np.ndarray):
         height, width = depth.shape
         # Image space vertices
@@ -150,6 +155,10 @@ class Record3DSingleHandMotionControl:
         mocap_data = pred_output[self.hand_mode]
         offset = self.compute_3d_offset(mocap_data, depth)
         self.previous_offset[self.hand_mode] = offset
+
+        self.graph.update(offset)
+        print("offset ", offset)
+        # print("calibrated offset ", self.calibrated_offset)
 
         # Output
         pose_params = mocap_data["pred_hand_pose"]

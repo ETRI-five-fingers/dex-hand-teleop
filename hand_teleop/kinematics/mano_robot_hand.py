@@ -98,6 +98,12 @@ class MANORobotHand:
         self.robot.set_qf(self.robot.compute_passive_force(external=False))
         current_qpos = self.robot.get_qpos()
         delta_qpos = (target_qpos - current_qpos) * confidence
+
+        # # wrist inc,
+        # wpos_inc = (target_qpos[:3] + current_qpos[:3]) * confidence
+        # delta_qpos[:3] = wpos_inc * 0.02
+        delta_qpos[:3] = np.clip(delta_qpos[:3], -0.015, 0.015)
+
         if self.position_control:
             pid_delta_qpos = self.pid.control(delta_qpos)
             drive_target = pid_delta_qpos + current_qpos

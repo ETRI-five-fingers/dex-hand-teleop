@@ -146,6 +146,7 @@ def main():
 
             root_joint_qpos = motion_control.compute_operator_space_root_qpos(motion_data)
             root_joint_qpos *= 1
+            # print("root joint qpos ", root_joint_qpos)
 
             finger_joint_qpos = mano_robot.compute_qpos(motion_data["pose_params"][3:])
             robot_qpos = np.concatenate([root_joint_qpos, finger_joint_qpos])

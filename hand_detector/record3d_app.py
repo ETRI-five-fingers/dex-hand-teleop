@@ -74,13 +74,8 @@ class CameraApp:
     def fetch_rgb_and_depth(self):
         if not self.rgb_video_file:
             self.event.wait(1)
-            print("depth shape: ", self.session.get_depth_frame().shape)
-            print("color shape: ", self.session.get_rgb_frame().shape)
             depth = np.transpose(self.session.get_depth_frame(), [1, 0])
             rgb = np.transpose(self.session.get_rgb_frame(), [1, 0, 2])
-
-            print("after depth shape: ", self.session.get_depth_frame().shape)
-            print("after color shape: ", self.session.get_rgb_frame().shape)
 
             is_true_depth = depth.shape[0] == 480
             if is_true_depth:
