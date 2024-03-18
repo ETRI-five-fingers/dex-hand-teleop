@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 
 import pyrealsense2 as rs
+import matplotlib.pyplot as plt
 
 
 class RealSenseBase:
@@ -179,8 +180,11 @@ class RealSenseApp(RealSenseBase):
         if not self.rgb_video_file:
             # self.event.wait(0.1)
             frames = self.pipeline.wait_for_frames()
-            depth_frame = frames.get_depth_frame()
-            color_frame = frames.get_color_frame()
+
+            align = rs.align(rs.stream.color)
+            aligned_frames = align.process(frames)
+            depth_frame = aligned_frames.get_depth_frame()
+            color_frame = aligned_frames.get_color_frame()
             depth_image = np.asanyarray(depth_frame.get_data())  # (h, w, 1)
             color_image = np.asanyarray(color_frame.get_data())  # (h, w, 3)
 
@@ -225,6 +229,11 @@ if __name__ == "__main__":
     intr = cam.camera_intrinsics
     print(intr)
 
+    # composite image
+    clipping_distance_in_meters = 2
+    clipping_distance = clipping_distance_in_meters / cam.depth_scale
+    background_removed_color = 153
+
     while True:
         color, depth = cam.fetch_rgb_and_depth()
         bgr = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
@@ -233,6 +242,14 @@ if __name__ == "__main__":
         cv2.namedWindow(name_of_window, cv2.WINDOW_AUTOSIZE)
         cv2.imshow(name_of_window, bgr)
         cv2.imshow("depth", depth)
+
+        # composite image
+        depth_3d = np.dstack((depth, depth, depth))
+        background_removed = np.where((depth_3d > clipping_distance) | (depth_3d <= 0),
+                                      background_removed_color, bgr)
+
+        cv2.imshow("composite", background_removed)
+
         print("min/max: {}/{}".format(depth.min(), depth.max()))
         key = cv2.waitKey(1)
         # Press esc or 'q' to close the image window

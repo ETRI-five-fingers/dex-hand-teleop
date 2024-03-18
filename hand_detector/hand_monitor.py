@@ -167,8 +167,8 @@ class Record3DSingleHandMotionControl:
         offset = self.compute_3d_offset(mocap_data, depth, bgr)
         self.previous_offset[self.hand_mode] = offset
 
-        self.dviz.update(offset)
-        print("offset ", offset)
+        # self.dviz.update(offset)
+        # print("offset ", offset)
         # print("calibrated offset ", self.calibrated_offset)
 
         # Output
