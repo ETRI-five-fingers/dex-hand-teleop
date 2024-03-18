@@ -11,7 +11,7 @@ from smplx import SMPLX
 from timingdecorator.timeit import timeit
 import scipy.stats
 
-from utils.utils import PlotOffset
+from utils.utils import DexVisualizer
 
 from hand_detector.hand_mode_detector import SingleHandDetector, HandMocap
 from hand_detector.record3d_app import CameraApp
@@ -103,14 +103,25 @@ class Record3DSingleHandMotionControl:
         self.previous_offset = {"left_hand": np.zeros(3, dtype=np.float32), "right_hand": np.zeros(3, dtype=np.float32)}
 
         # Plot data(offset)
-        self.graph = PlotOffset()
+        self.dviz = DexVisualizer()
 
-    def compute_3d_offset(self, mocap_data: Dict, depth: np.ndarray):
+    def compute_3d_offset(self, mocap_data: Dict, depth: np.ndarray, rgb: np.ndarray):
         height, width = depth.shape
         # Image space vertices
         mask_int = np.rint(mocap_data["pred_vertices_img"][:, :2]).astype(int)
         mask_int = np.clip(mask_int, [0, 0], [width - 1, height - 1])
         depth_vertices = depth[mask_int[:, 1], mask_int[:, 0]]
+
+        _depth = np.dstack((depth, depth, depth))
+        background_removed_color = 153
+        clipping_distance_in_meters = 2
+        clipping_distance = clipping_distance_in_meters / self.camera.depth_scale
+        background_removed = np.where((_depth > clipping_distance) | (_depth <= 0),
+                                      background_removed_color, rgb)
+        for m in mask_int:
+            _depth = cv2.circle(_depth, (m[0], m[1]), radius=3, color=(0, 0, 255), thickness=-1)
+        self.dviz.show_image(_depth)
+
         depth_median = np.nanmedian(depth_vertices)
         depth_valid_mask = np.nonzero(np.abs(depth_vertices - depth_median) < 0.2)[0]
         valid_vertex_depth = depth_vertices[depth_valid_mask]
@@ -153,10 +164,10 @@ class Record3DSingleHandMotionControl:
         # Joint regression
         pred_output = self.hand_mocap.regress(bgr, hand_bbox_list, add_margin=False)[0]
         mocap_data = pred_output[self.hand_mode]
-        offset = self.compute_3d_offset(mocap_data, depth)
+        offset = self.compute_3d_offset(mocap_data, depth, bgr)
         self.previous_offset[self.hand_mode] = offset
 
-        self.graph.update(offset)
+        self.dviz.update(offset)
         print("offset ", offset)
         # print("calibrated offset ", self.calibrated_offset)
 
@@ -193,7 +204,7 @@ class Record3DSingleHandMotionControl:
         # Joint regression
         pred_output = self.hand_mocap.regress(bgr, hand_bbox_list, add_margin=False)[0]
         mocap_data = pred_output[self.hand_mode]
-        offset = self.compute_3d_offset(mocap_data, depth)
+        offset = self.compute_3d_offset(mocap_data, depth, bgr)
         has_init_offset = np.sum(np.abs(self.previous_offset[self.hand_mode])) > 1e-2
 
         # Stop initialization process and clear data

@@ -1,10 +1,11 @@
 import random
 
+import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-class PlotOffset:
+class DexVisualizer:
     def __init__(self):
         plt.ion()   # interactive on
         self.fig = plt.figure()
@@ -48,8 +49,9 @@ class PlotOffset:
         self.fig.canvas.flush_events()
         plt.pause(0.01)
 
-    def temp(self):
-        pass
+    def show_image(self, img, name="Image"):
+        cv2.imshow(name, img)
+        cv2.waitKey(1)
 
 
 class AttrDict(dict):
@@ -71,8 +73,19 @@ class AttrDict(dict):
 
 
 if __name__ == "__main__":
-    pt = PlotTimeSeries()
-    for i in range(1000):
-        offset = np.append(np.random.rand(2) - 0.5, np.random.rand(1))
-        pt.update(offset)
+    dv = DexVisualizer()
+
+    img = np.random.rand(240, 320)
+    img = np.dstack((img, img, img))
+    points = np.random.randint(min(img.shape[:2]), size=(10, 2))
+    for p in points:
+        print(p)
+        img = cv2.circle(img, (p[0], p[1]), radius=2, color=(0, 0, 255), thickness=-1)
+
+    dv.show_image(img)
+    cv2.waitKey(0)
+
+    # for i in range(100):
+    #     offset = np.append(np.random.rand(2) - 0.5, np.random.rand(1))
+    #     dv.update(offset)
 
