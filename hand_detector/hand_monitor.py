@@ -49,11 +49,13 @@ COLOR_MAP = get_cmap("RdYlGn")
 class Record3DSingleHandMotionControl:
     SUPPORT_HAND_MODE = ["right_hand", "left_hand"]
 
-    def __init__(self, hand_mode: str, show_hand=True, virtual_video_file="", need_init=True):
+    def __init__(self, hand_mode: str, show_hand=True, virtual_video_file="", need_init=True, device="cpu"):
         if hand_mode not in self.SUPPORT_HAND_MODE:
             raise ValueError(
                 f"Mode {hand_mode} is invalid. Current {len(self.SUPPORT_HAND_MODE)} mode are supported: "
                 f"{self.SUPPORT_HAND_MODE} ")
+
+        self.device = device
 
         # Camera app, choose the camera you want to use between iphone and realsense
         # self.camera = CameraApp(file=virtual_video_file)
@@ -94,7 +96,8 @@ class Record3DSingleHandMotionControl:
         default_checkpoint_hand = "./extra_data/hand_module/pretrained_weights/pose_shape_best.pth"
         default_checkpoint_body_smpl = './extra_data/smpl'
         self.hand_mocap = HandMocap(str(hand_detector_dir / default_checkpoint_hand),
-                                    str(hand_detector_dir / default_checkpoint_body_smpl))
+                                    str(hand_detector_dir / default_checkpoint_body_smpl),
+                                    device=device)
 
         # Detection cache
         self.previous_bbox = {"left_hand": None, "right_hand": None}

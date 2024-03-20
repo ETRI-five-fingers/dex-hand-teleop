@@ -95,7 +95,9 @@ class SingleHandDetector:
 
 
 class HandMocap:
-    def __init__(self, checkpoint_path, smpl_dir):
+    def __init__(self, checkpoint_path, smpl_dir, device="cpu"):
+        self.device = device
+
         # For image transform
         transform_list = [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
         self.normalize_transform = transforms.Compose(transform_list)
@@ -129,7 +131,7 @@ class HandMocap:
                                    -0.2769, 0.0915, -0.4998, -0.0266, -0.0529, 0.5356, -0.0460, 0.2774])
 
         # self.opt.which_epoch = str(epoch)
-        self.model = H3DWModel(self.opt)
+        self.model = H3DWModel(self.opt, device=device)
         if not self.model.success_load:
             raise RuntimeError(f"Check points {self.opt.checkpoint_path} does not exist")
         self.model.eval()

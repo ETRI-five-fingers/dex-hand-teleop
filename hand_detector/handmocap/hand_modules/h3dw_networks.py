@@ -45,10 +45,11 @@ def get_model(arch):
 
 
 class H3DWEncoder(nn.Module):
-    def __init__(self, opt, mean_params):
+    def __init__(self, opt, mean_params, device="cpu"):
         super(H3DWEncoder, self).__init__()
+        self.device = device
         self.two_branch = opt.two_branch
-        self.mean_params = mean_params.clone().cuda()
+        self.mean_params = mean_params.clone().to(self.device)
         self.opt = opt
 
         relu = nn.ReLU(inplace=False)
@@ -57,11 +58,10 @@ class H3DWEncoder(nn.Module):
 
         feat_encoder = [relu, fc2, relu]
         regressor = [regressor, ]
-        self.feat_encoder = nn.Sequential(*feat_encoder)
-        self.regressor = nn.Sequential(*regressor)
+        self.feat_encoder = nn.Sequential(*feat_encoder).to(self.device)
+        self.regressor = nn.Sequential(*regressor).to(self.device)
 
         self.main_encoder = get_model(opt.main_encoder)
-
 
     def forward(self, main_input):
         main_feat = self.main_encoder(main_input)

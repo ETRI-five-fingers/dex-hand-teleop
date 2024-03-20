@@ -62,7 +62,8 @@ class H3DWModel(object):
     def name(self):
         return 'H3DWModel'
 
-    def __init__(self, opt):
+    def __init__(self, opt, device="cpu"):
+        self.device = device
         self.opt = opt
         self.Tensor = torch.cuda.FloatTensor
 
@@ -85,19 +86,19 @@ class H3DWModel(object):
 
         # set input image and 2d keypoints
         self.input_img = self.Tensor(
-            nb, opt.input_nc, self.inputSize, self.inputSize)
+            nb, opt.input_nc, self.inputSize, self.inputSize).to(self.device)
 
         # joints 2d
-        self.keypoints = self.Tensor(nb, opt.num_joints, 2)
-        self.keypoints_weights = self.Tensor(nb, opt.num_joints)
+        self.keypoints = self.Tensor(nb, opt.num_joints, 2).to(self.device)
+        self.keypoints_weights = self.Tensor(nb, opt.num_joints).to(self.device)
 
         # mano pose params
-        self.gt_pose_params = self.Tensor(nb, opt.pose_params_dim)
-        self.mano_params_weight = self.Tensor(nb, 1)
+        self.gt_pose_params = self.Tensor(nb, opt.pose_params_dim).to(self.device)
+        self.mano_params_weight = self.Tensor(nb, 1).to(self.device)
 
         # joints 3d
-        self.joints_3d = self.Tensor(nb, opt.num_joints, 3)
-        self.joints_3d_weight = self.Tensor(nb, opt.num_joints, 1)
+        self.joints_3d = self.Tensor(nb, opt.num_joints, 3).to(self.device)
+        self.joints_3d_weight = self.Tensor(nb, opt.num_joints, 1).to(self.device)
 
         # load mean params, the mean params are from HMR
         self.mean_param_file = osp.join(
@@ -114,10 +115,10 @@ class H3DWModel(object):
             gender='neutral',
             num_betas=10,
             use_pca=False,
-            ext='pkl').cuda()
+            ext='pkl').to(self.device)
 
         # set encoder and optimizer
-        self.encoder = H3DWEncoder(opt, self.mean_params).cuda()
+        self.encoder = H3DWEncoder(opt, self.mean_params, device=self.device).to(self.device)
         if opt.dist:
             self.encoder = DistributedDataParallel(
                 self.encoder, device_ids=[torch.cuda.current_device()])
@@ -158,7 +159,7 @@ class H3DWModel(object):
         self.mean_params.requires_grad = False
 
         # define global rotation
-        self.global_orient = torch.zeros((self.batch_size, 3), dtype=torch.float32).cuda()
+        self.global_orient = torch.zeros((self.batch_size, 3), dtype=torch.float32).to(self.device)
         # self.global_orient[:, 0] = np.pi
         self.global_orient.requires_grad = False
 
@@ -178,7 +179,7 @@ class H3DWModel(object):
     def get_smplx_output(self, pose_params, shape_params=None):
         hand_rotation = pose_params[:, :3]
         hand_pose = pose_params[:, 3:]
-        body_pose = torch.zeros((self.batch_size, 63)).float().cuda()
+        body_pose = torch.zeros((self.batch_size, 63)).float().to(self.device)
         body_pose[:, 60:] = hand_rotation  # set right hand rotation
 
         output = self.smplx(

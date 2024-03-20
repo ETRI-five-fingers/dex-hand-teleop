@@ -68,7 +68,7 @@ def main():
                                                     0)
 
     # Perception
-    motion_control = Record3DSingleHandMotionControl(hand_mode="right_hand", show_hand=True)
+    motion_control = Record3DSingleHandMotionControl(hand_mode="right_hand", show_hand=True, device="cuda:1")
 
     # Recorder
     recorder = DataRecorder(filename=str(path.resolve()), scene=scene)
@@ -171,6 +171,4 @@ def main():
 
 
 if __name__ == '__main__':
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     main()
