@@ -90,8 +90,9 @@ def bake_demonstration_test(data_path, robot_name, visualize=True):
 
 
 if __name__ == '__main__':
-    robot_name = ["allegro_hand_free", "svh_hand_free", "adroit_hand_free"][2]
-    pkl_path = Path(__file__).parent / "example_teleop_data/relocate_tomato_soup_can.pkl"
+    robot_name = ["allegro_hand_free", "svh_hand_free", "adroit_hand_free"][1]
+    # pkl_path = Path(__file__).parent / "example_teleop_data/relocate_tomato_soup_can.pkl"
     # pkl_path = Path(__file__).parent / "example_teleop_data/flip_mug.pkl"
     # pkl_path = Path(__file__).parent / "example_teleop_data/open_door.pkl"
+    pkl_path = Path(__file__).parent / "teleop_collected_data/relocate-mustard_bottle/0000.pickle"
     bake_demonstration_test(data_path=str(pkl_path), robot_name=robot_name, visualize=True)

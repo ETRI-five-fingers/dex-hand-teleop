@@ -18,7 +18,7 @@ from hand_teleop.player.recorder import DataRecorder
 
 def main():
     # Choose a task: relocate, open_door, flip
-    task_name = ["open_door", "relocate", "flip"][0]
+    task_name = ["open_door", "relocate", "flip"][1]
 
     # Choose object if you are working relocate
     object_name = ['tomato_soup_can', 'bleach_cleanser', 'mug', "mustard_bottle", "potted_meat_can"][3]
@@ -145,7 +145,9 @@ def main():
                 continue
 
             root_joint_qpos = motion_control.compute_operator_space_root_qpos(motion_data)
-            root_joint_qpos *= 1
+            root_joint_qpos *= 1.0
+            mat = np.array([[0, 0, -1], [0, 1, 0], [1, 0, 0]])
+            root_joint_qpos[:3] = mat @ root_joint_qpos[:3]
             # print("root joint qpos ", root_joint_qpos)
 
             finger_joint_qpos = mano_robot.compute_qpos(motion_data["pose_params"][3:])
