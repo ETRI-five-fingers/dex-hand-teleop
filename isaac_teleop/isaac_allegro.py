@@ -20,11 +20,14 @@ import time
 class IsaacAllegro(Node):
     def __init__(self):
 
-        super().__init__("test_ros2bridge")
+        super().__init__("allegro_test")
+
+        self.joint_command_topic_name = "allegro_joint_command"
+        self.joint_state_topic_name = "allegro_joint_states"
 
         # Create the publisher. This publisher will publish a JointState message to the /joint_command topic.
-        self.publisher_ = self.create_publisher(JointState, "joint_command", 10)
-        self.subs_joint_state = self.create_subscription(JointState, 'joint_states', self.subs_callback, 10)
+        self.publisher_ = self.create_publisher(JointState, self.joint_command_topic_name, 10)
+        self.subs_joint_state = self.create_subscription(JointState, self.joint_state_topic_name, self.subs_callback, 10)
 
         # Create a JointState message
         self.joint_state = JointState()
@@ -80,12 +83,17 @@ class IsaacAllegro(Node):
             print("{}: pos: {}, vel: {}, effort: {}".format(n, p, v, e))
         # self.get_logger().info('I heard: "%s"' % msg)
 
+    @property
+    def is_connected(self):
+        return True if len(self.get_publishers_info_by_topic(topic_name=self.joint_state_topic_name)) > 0 else False
+
 
 def main(args=None):
     rclpy.init(args=args)
 
     ros2_publisher = IsaacAllegro()
 
+    print(ros2_publisher.is_connected)
     rclpy.spin(ros2_publisher)
 
     # Destroy the node explicitly

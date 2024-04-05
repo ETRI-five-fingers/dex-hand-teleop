@@ -16,7 +16,7 @@ from hand_detector.handmocap.hand_modules.h3dw_networks import H3DWEncoder
 from torch.nn.parallel import DistributedDataParallel
 
 
-def extract_hand_output(output, hand_type, hand_info, top_finger_joints_type='ave', use_cuda=True):
+def extract_hand_output(output, hand_type, hand_info, top_finger_joints_type='ave', use_cuda=True, device="cpu"):
     assert hand_type in ['left', 'right']
 
     if hand_type == 'left':
@@ -28,9 +28,9 @@ def extract_hand_output(output, hand_type, hand_info, top_finger_joints_type='av
     joints = output.joints
     vertices_shift = vertices - joints[:, hand_start_idx:hand_start_idx + 1, :]
 
-    hand_verts_idx = torch.Tensor(hand_info[f'{hand_type}_hand_verts_idx']).long()
+    hand_verts_idx = torch.Tensor(hand_info[f'{hand_type}_hand_verts_idx']).long().to(device)
     if use_cuda:
-        hand_verts_idx = hand_verts_idx.cuda()
+        hand_verts_idx = hand_verts_idx.cuda().to(device)
 
     hand_verts = vertices[:, hand_verts_idx, :]
     hand_verts_shift = hand_verts - joints[:, hand_start_idx:hand_start_idx + 1, :]
@@ -194,7 +194,8 @@ class H3DWModel(object):
             hand_type='right',
             hand_info=self.hand_info,
             top_finger_joints_type=self.top_finger_joints_type,
-            use_cuda=True)
+            use_cuda=True,
+            device=self.device)
 
         pred_verts = hand_output['vertices_shift']
         pred_joints_3d = hand_output['hand_joints_shift']
